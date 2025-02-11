@@ -6,7 +6,7 @@
 /*   By: otaniyuhi <otaniyuhi@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 19:58:45 by otaniyuhi         #+#    #+#             */
-/*   Updated: 2025/02/11 12:04:28 by otaniyuhi        ###   ########.fr       */
+/*   Updated: 2025/02/11 15:06:25 by otaniyuhi        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,8 +52,8 @@ void	*monitor_dinner(void *arg)
 		{
 			if (is_philo_died(table, &table->philos[i]))
 			{
-				write_status(&table->philos[i], DIED, DEBUG_MODE);
 				set_bool(&table->t_mutex, &table->end_simulation, true);
+				write_status(&table->philos[i], DIED, DEBUG_MODE);
 			}
 		}
 	}

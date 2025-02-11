@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   write.c                                            :+:      :+:    :+:   */
+/*   write_status.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: otaniyuhi <otaniyuhi@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/06 15:49:51 by otaniyuhi         #+#    #+#             */
-/*   Updated: 2025/02/11 11:33:13 by otaniyuhi        ###   ########.fr       */
+/*   Updated: 2025/02/11 15:11:20 by otaniyuhi        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@ bool	write_status(t_philo *philo, t_status status, bool DEBUG)
 			printf("%-6ld %d is sleeping\n", elapsed, philo->id);
 		else if (status == THINK && !get_end_simulation(philo->table))
 			printf("%-6ld %d is thinking\n", elapsed, philo->id);
-		else if (status == DIED && !get_end_simulation(philo->table))
+		else if (status == DIED) 
 			printf("%-6ld %d died\n", elapsed, philo->id);
 	}
 	mutex_handle(&philo->table->w_mutex, UNLOCK);
