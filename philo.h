@@ -3,24 +3,28 @@
 /*                                                        :::      ::::::::   */
 /*   philo.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: otaniyuhi <otaniyuhi@student.42.fr>        +#+  +:+       +#+        */
+/*   By: oyuhi <oyuhi@student.42tokyo.jp>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 15:39:42 by otaniyuhi         #+#    #+#             */
-/*   Updated: 2025/02/11 12:59:58 by otaniyuhi        ###   ########.fr       */
+/*   Updated: 2025/02/16 11:09:26 by oyuhi            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <errno.h>   //EINVAL EDEADLK
-#include <limits.h>  // INT_MAX
-#include <pthread.h> //mutex:init destroy lock unlock threads:create join detach
-#include <stdbool.h>
-#include <stdio.h>    //printf
-#include <stdlib.h>   //malloc free
-#include <sys/time.h> //gettimeofday
-#include <unistd.h>   //write, usleep
+#ifndef PHILO_H
+# define PHILO_H
+
+# include <errno.h>  //EINVAL EDEADLK
+# include <limits.h> // INT_MAX
+# include <pthread.h>
+// mutex:init destroy lock unlock threads:create join detach
+# include <stdbool.h>
+# include <stdio.h>    //printf
+# include <stdlib.h>   //malloc free
+# include <sys/time.h> //gettimeofday
+# include <unistd.h>   //write, usleep
 
 /*** DEFINE ***/
-#define DEBUG_MODE 0
+# define DEBUG_MODE 0
 
 /*** OPCODE FOR mutex ***/
 // enum = a user defined type of named integer identifiers
@@ -43,11 +47,13 @@ typedef enum opcode
 	DETACH,
 }						t_opcode;
 
+// 1s == 1000ms
+// 1ms == 1000mus
 typedef enum e_unit
 {
 	SECOND,
-	MILLI, // 1s == 1000ms
-	MICRO, // 1ms == 1000mus
+	MILLI,
+	MICRO,
 }						t_unit;
 
 typedef enum e_status
@@ -141,3 +147,5 @@ void					precise_usleep(t_table *table, long usec);
 // write
 bool					write_status(t_philo *philo, t_status status,
 							bool DEBUG);
+
+#endif

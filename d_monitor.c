@@ -3,14 +3,32 @@
 /*                                                        :::      ::::::::   */
 /*   d_monitor.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: otaniyuhi <otaniyuhi@student.42.fr>        +#+  +:+       +#+        */
+/*   By: oyuhi <oyuhi@student.42tokyo.jp>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 19:58:45 by otaniyuhi         #+#    #+#             */
-/*   Updated: 2025/02/11 15:06:25 by otaniyuhi        ###   ########.fr       */
+/*   Updated: 2025/02/16 13:15:37 by oyuhi            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
+
+
+/*
+ * check all philos are full
+ * increment the count if a philo is full, if not, reset the count
+ */
+static bool	is_all_philo_full(t_table *table, t_philo *philo)
+{
+	static int	full_philo_count = 0;
+
+	if (get_bool(&philo->p_mutex, &philo->full))
+		full_philo_count++;
+	else
+		full_philo_count = 0;
+	if (full_philo_count == table->philo_nbr)
+		return (true);
+	return (false);
+}
 
 /*
  * check whether philo died
@@ -22,8 +40,6 @@ static bool	is_philo_died(t_table *table, t_philo *philo)
 	long	t_to_die;
 	long	last_meal_time;
 
-	if (get_bool(&philo->p_mutex, &philo->full))
-		return (false);
 	last_meal_time = get_long(&philo->p_mutex, &philo->last_meal_time);
 	elapsed = gettime(MILLI) - last_meal_time;
 	t_to_die = table->time_to_die / 1e3;
@@ -50,6 +66,8 @@ void	*monitor_dinner(void *arg)
 		i = -1;
 		while (++i < table->philo_nbr && !get_end_simulation(table))
 		{
+			if (is_all_philo_full(table, &table->philos[i]))
+				set_bool(&table->t_mutex, &table->end_simulation, true);
 			if (is_philo_died(table, &table->philos[i]))
 			{
 				set_bool(&table->t_mutex, &table->end_simulation, true);

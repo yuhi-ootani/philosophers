@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   write_status.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: otaniyuhi <otaniyuhi@student.42.fr>        +#+  +:+       +#+        */
+/*   By: oyuhi <oyuhi@student.42tokyo.jp>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/06 15:49:51 by otaniyuhi         #+#    #+#             */
-/*   Updated: 2025/02/11 15:11:20 by otaniyuhi        ###   ########.fr       */
+/*   Updated: 2025/02/16 13:17:57 by oyuhi            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,6 @@ void	write_status_debug(t_philo *philo, t_status status)
 		printf("time:%-6ld\t%d is THINKING.\n", elapsed, philo->id);
 	else if (status == DIED && !get_end_simulation(philo->table))
 		printf("time:%-6ld\t%d DIED!💀💀\n", elapsed, philo->id);
-	mutex_handle(&philo->table->w_mutex, UNLOCK);
 }
 
 /*
@@ -44,26 +43,51 @@ bool	write_status(t_philo *philo, t_status status, bool DEBUG)
 {
 	long	elapsed;
 
-	if (get_bool(&philo->p_mutex, &philo->full))
-		return (true);
 	mutex_handle(&philo->table->w_mutex, LOCK);
 	if (DEBUG)
 		write_status_debug(philo, status);
 	else
 	{
 		elapsed = gettime(MILLI) - philo->table->start_simulation;
-		if ((status == FORK1 || status == FORK2)
-			&& !get_end_simulation(philo->table))
+		if ((status == FORK1 || status == FORK2))
 			printf("%-6ld %d has taken a fork\n", elapsed, philo->id);
-		else if (status == EAT && !get_end_simulation(philo->table))
+		else if (status == EAT)
 			printf("%-6ld %d is eating\n", elapsed, philo->id);
-		else if (status == SLEEP && !get_end_simulation(philo->table))
+		else if (status == SLEEP)
 			printf("%-6ld %d is sleeping\n", elapsed, philo->id);
-		else if (status == THINK && !get_end_simulation(philo->table))
+		else if (status == THINK)
 			printf("%-6ld %d is thinking\n", elapsed, philo->id);
-		else if (status == DIED) 
+		else if (status == DIED)
 			printf("%-6ld %d died\n", elapsed, philo->id);
 	}
 	mutex_handle(&philo->table->w_mutex, UNLOCK);
 	return (true);
 }
+
+// bool	write_status(t_philo *philo, t_status status, bool DEBUG)
+// {
+// 	long	elapsed;
+
+// 	if ((status == DIED) && get_bool(&philo->p_mutex, &philo->full))
+// 		return (true);
+// 	mutex_handle(&philo->table->w_mutex, LOCK);
+// 	if (DEBUG)
+// 		write_status_debug(philo, status);
+// 	else
+// 	{
+// 		elapsed = gettime(MILLI) - philo->table->start_simulation;
+// 		if ((status == FORK1 || status == FORK2)
+// 			&& !get_end_simulation(philo->table))
+// 			printf("%-6ld %d has taken a fork\n", elapsed, philo->id);
+// 		else if (status == EAT && !get_end_simulation(philo->table))
+// 			printf("%-6ld %d is eating\n", elapsed, philo->id);
+// 		else if (status == SLEEP && !get_end_simulation(philo->table))
+// 			printf("%-6ld %d is sleeping\n", elapsed, philo->id);
+// 		else if (status == THINK && !get_end_simulation(philo->table))
+// 			printf("%-6ld %d is thinking\n", elapsed, philo->id);
+// 		else if (status == DIED)
+// 			printf("%-6ld %d died\n", elapsed, philo->id);
+// 	}
+// 	mutex_handle(&philo->table->w_mutex, UNLOCK);
+// 	return (true);
+// }

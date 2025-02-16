@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   d_dinner.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: otaniyuhi <otaniyuhi@student.42.fr>        +#+  +:+       +#+        */
+/*   By: oyuhi <oyuhi@student.42tokyo.jp>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/06 10:15:44 by otaniyuhi         #+#    #+#             */
-/*   Updated: 2025/02/11 14:50:50 by otaniyuhi        ###   ########.fr       */
+/*   Updated: 2025/02/16 13:16:38 by oyuhi            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,11 +38,15 @@ static void	eat_sleep_think(t_philo *philo, t_table *table)
 		set_bool(&philo->p_mutex, &philo->full, true);
 	mutex_handle(&philo->second_fork->f_mutex, UNLOCK);
 	mutex_handle(&philo->first_fork->f_mutex, UNLOCK);
+	if (get_end_simulation(table))
+		return ;
 	write_status(philo, SLEEP, DEBUG_MODE);
 	precise_usleep(table, table->time_to_sleep);
+	if (get_end_simulation(table))
+		return ;
 	write_status(philo, THINK, DEBUG_MODE);
 	if (table->philo_nbr % 2 != 0)
-		precise_usleep(table, 30000);
+		precise_usleep(table, 3e4);
 }
 
 /*
@@ -73,14 +77,13 @@ void	*simulation(void *arg)
 			usleep(200);
 		return (NULL);
 	}
-	while (!get_end_simulation(philo->table) && !get_bool(&philo->p_mutex,
-			&philo->full))
+	write_status(philo, THINK, DEBUG_MODE);
+	if (philo->id % 2)
+		precise_usleep(philo->table, 3e4);
+	while (!get_end_simulation(philo->table))
 		eat_sleep_think(philo, philo->table);
 	return (NULL);
 }
-// set_long(&philo->table->t_mutex, &philo->table->threads_running_nbr,
-// 	get_long(&philo->table->t_mutex, &philo->table->threads_running_nbr)
-// 	+ 1);
 
 /*
  *
@@ -116,6 +119,7 @@ void	dinner(t_table *table, t_philo *philos, int i)
 	}
 	set_bool(&table->t_mutex, &table->end_simulation, true);
 	thread_handle(&table->monitor, NULL, NULL, E_JOIN);
+	return ;
 }
 
 /***  SPINLOCK TO Synchronize philos start ***/

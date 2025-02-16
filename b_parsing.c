@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   b_parsing.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: otaniyuhi <otaniyuhi@student.42.fr>        +#+  +:+       +#+        */
+/*   By: oyuhi <oyuhi@student.42tokyo.jp>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 18:59:14 by otaniyuhi         #+#    #+#             */
-/*   Updated: 2025/02/08 15:25:20 by otaniyuhi        ###   ########.fr       */
+/*   Updated: 2025/02/16 12:22:52 by oyuhi            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,18 +44,20 @@ static const char	*valid_input(const char *str)
 	if (*str == '+')
 		++str;
 	if (*str == '-')
-		return ((printf("Input must be positive value!"), NULL));
+		return ((printf("Inputs must be positive value!\n"), NULL));
 	if (!is_digit(*str))
-		return ((printf("Input isn't correct digit!"), NULL));
+		return ((printf("Inputs must contain only digit!\n"), NULL));
+	if (*str == '0')
+		return ((printf("Inputs must not start from 0!(MORE THAN 0)\n"), NULL));
 	number = str;
 	while (is_digit(str[len]))
 		len++;
 	if (len > 10)
-		return ((printf("Input is bigger than INT_MAX!"), NULL));
+		return ((printf("Inputs must be less than INT_MAX!\n"), NULL));
 	while (str[len])
 	{
 		if (!is_space(str[len++]))
-			return ((printf("Input has letter or symbol!"), NULL));
+			return ((printf("Inputs must be finish with a digit!\n"), NULL));
 	}
 	return (number);
 }
@@ -89,11 +91,16 @@ static long	ft_atol(const char *str)
 bool	parse_input(t_table *table, char **av)
 {
 	table->philo_nbr = ft_atol(av[1]);
+	if (table->philo_nbr < 0)
+		return (false);
 	table->time_to_die = ft_atol(av[2]) * 1e3;
+	if (table->time_to_die < 0)
+		return (false);
 	table->time_to_eat = ft_atol(av[3]) * 1e3;
+	if (table->time_to_eat < 0)
+		return (false);
 	table->time_to_sleep = ft_atol(av[4]) * 1e3;
-	if (table->philo_nbr < 0 || table->time_to_die < 0 || table->time_to_eat < 0
-		|| table->time_to_sleep < 0)
+	if (table->time_to_sleep < 0)
 		return (false);
 	if (av[5])
 	{
