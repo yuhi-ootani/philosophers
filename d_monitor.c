@@ -6,12 +6,11 @@
 /*   By: oyuhi <oyuhi@student.42tokyo.jp>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/08 19:58:45 by otaniyuhi         #+#    #+#             */
-/*   Updated: 2025/02/16 13:15:37 by oyuhi            ###   ########.fr       */
+/*   Updated: 2025/02/16 13:21:32 by oyuhi            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
-
 
 /*
  * check all philos are full

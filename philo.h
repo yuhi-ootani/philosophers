@@ -6,7 +6,7 @@
 /*   By: oyuhi <oyuhi@student.42tokyo.jp>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/30 15:39:42 by otaniyuhi         #+#    #+#             */
-/*   Updated: 2025/02/16 11:09:26 by oyuhi            ###   ########.fr       */
+/*   Updated: 2025/02/16 13:27:27 by oyuhi            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -145,7 +145,7 @@ bool					get_end_simulation(t_table *table);
 long					gettime(t_unit unit);
 void					precise_usleep(t_table *table, long usec);
 // write
-bool					write_status(t_philo *philo, t_status status,
+void					write_status(t_philo *philo, t_status status,
 							bool DEBUG);
 
 #endif
