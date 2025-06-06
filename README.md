@@ -1,87 +1,100 @@
-# Pipex
+# philosophers
 
 ## Summary  
-This repository implements the **Pipex** project—a minimal recreation of Unix shell piping in C. It takes an input file, executes a sequence of commands where each command’s output is piped to the next, and writes the final output to an output file. Under the hood, it uses `pipe()`, `fork()`, `dup2()`, and `execve()` to link processes, and relies on a custom Libft for utility functions. :contentReference[oaicite:0]{index=0}
+This repository implements the **Dining Philosophers** problem in C, following the 42 School project specification. It simulates a set of philosophers sitting at a round table, each requiring two forks (shared resources) to eat. Depending on the build target, it can use either processes with semaphores (mandatory part) or threads with mutexes (bonus part) to coordinate access to forks and to detect philosopher “death” when the time to die elapses without eating. :contentReference[oaicite:0]{index=0}
 
 ## Repository Structure  
-- **`.vscode/`**  
-  - Configuration files for Visual Studio Code (e.g., `settings.json`, `launch.json`).  
-- **`libft/`**  
-  - A custom Libft library containing reimplemented C standard‐library routines (e.g., `ft_split`, `ft_strjoin`, `ft_strdup`, `ft_strlen`, `ft_strncmp`, `ft_substr`) that Pipex depends on for string manipulation and memory tasks.  
 - **`Makefile`**  
-  - Build instructions:  
-    - **`make`** (default):  
-      1. Compiles Libft (into `libft/libft.a`).  
-      2. Compiles `pipex.c` and `pipex_helper.c` and links against `-lft` to produce the `pipex` executable.  
-    - **`make clean`**: Removes object files in the root and in `libft/`.  
-    - **`make fclean`**: Runs `clean` and also removes `libft.a` and the `pipex` binary.  
-    - **`make re`**: Runs `fclean` then `make` to rebuild from scratch. :contentReference[oaicite:1]{index=1}  
-- **`pipex.h`**  
-  - Header file that declares all necessary function prototypes and includes for Pipex:  
-    - Standard headers (`<unistd.h>`, `<stdlib.h>`, `<fcntl.h>`, `<sys/wait.h>`)  
-    - Libft header (`libft/libft.h`)  
-    - Macros for error messages and constants (e.g., `#define ERR_ARG "Error: invalid arguments\n"`).  
-- **`pipex.c`**  
-  - Contains the `main()` function:  
-    1. Validates that exactly **5** arguments are provided:  
+  - Builds two executables:  
+    - `philo`: the mandatory version using separate processes and POSIX semaphores.  
+    - `philo_bonus`: the bonus version using threads and pthread mutexes.  
+  - Targets:  
+    - `all` (default): Compiles both `philo` and `philo_bonus`.  
+    - `clean`: Removes object files.  
+    - `fclean`: Removes object files and the executables (`philo`, `philo_bonus`).  
+    - `re`: Runs `fclean` then `all`. :contentReference[oaicite:1]{index=1}
+
+- **`philo.h`**  
+  - Central header defining:  
+    - Structs for philosopher state, timing parameters, and shared data (e.g., number of philosophers, time_to_die, time_to_eat, time_to_sleep, number_of_times_each_must_eat).  
+    - Function prototypes for initialization, monitoring, actions (take forks, eat, sleep, think), cleaning up resources, and utility routines (timestamping, printing).  
+    - Includes for standard headers (`<stdio.h>`, `<stdlib.h>`, `<unistd.h>`, `<pthread.h>`, `<semaphore.h>`, `<sys/time.h>`). :contentReference[oaicite:2]{index=2}
+
+- **Source files for mandatory part (`philo/` or top‐level files)**  
+  1. **`main.c`**  
+     - Parses and validates command-line arguments:  
        ```bash
-       ./pipex infile cmd1 cmd2 outfile
+       ./philo number_of_philosophers time_to_die time_to_eat time_to_sleep [number_of_times_each_philosopher_must_eat]
        ```  
-       (Alternatively, a more advanced version may accept more than two commands in between.)  
-    2. Opens `infile` for reading and `outfile` for writing (with `O_CREAT | O_WRONLY | O_TRUNC`, mode `0644`).  
-    3. Creates a pipe (an array `int pipefd[2]`).  
-    4. **First child process** (`fork()`):  
-       - Uses `dup2(pipefd[1], STDOUT_FILENO)` to redirect its standard output into `pipefd[1]`.  
-       - Uses `dup2(infile_fd, STDIN_FILENO)` to take input from `infile`.  
-       - Closes unused file descriptors.  
-       - Parses `cmd1` (splits it into `argv[]` using Libft’s `ft_split()`), finds its full path via `get_path()`, then calls `execve()`.  
-    5. **Second child process** (`fork()`):  
-       - Uses `dup2(pipefd[0], STDIN_FILENO)` to take input from `pipefd[0]`.  
-       - Uses `dup2(outfile_fd, STDOUT_FILENO)` to write its standard output to `outfile`.  
-       - Closes unused descriptors.  
-       - Parses `cmd2`, resolves its path, then `execve()`.  
-    6. Parent closes both ends of the pipe and waits for both children to finish.  
-    7. On any `open()` or `pipe()` or `fork()` failure, prints an error message and exits. :contentReference[oaicite:2]{index=2}  
-- **`pipex_helper.c`**  
-  - Helper routines used by `pipex.c`:  
-    - **`get_path()`**:  
-      - Scans the `PATH` environment variable (using `getenv("PATH")`), splits it by colons, and appends `/cmd` to each directory to locate the executable (using `access(..., X_OK)`).  
-      - Returns the fully qualified path to the executable or `NULL` if not found.  
-    - **`exec_cmd()`**:  
-      - Wraps `execve()` calls: takes a `cmd_str` and `envp`, calls `get_path()`, then `execve()`. On failure, prints `cmd: command not found\n` and exits.  
-    - **`free_split(char **arr)`**:  
-      - Frees a NULL-terminated array of strings (used to clean up after `ft_split()`).  
-    - **`error_exit(char *msg)`**:  
-      - Prints the given `msg` to `stderr` and calls `exit(EXIT_FAILURE)`. :contentReference[oaicite:3]{index=3}  
-- **`pipex.sh`**  
-  - A shell script demonstrating typical usage and testing:  
-    ```bash
-    #!/bin/bash
-    # Example: ./pipex infile "grep something" "wc -l" outfile
-    VALGRIND=$(command -v valgrind)
-    if [ -z "$VALGRIND" ]; then
-      echo "Valgrind not installed"
-    else
-      echo "Running under Valgrind:"
-      valgrind --leak-check=full ./pipex infile "grep foo" "wc -l" outfile
-    fi
-    ```
-  - Can be used to validate memory leaks and correct file descriptor usage. :contentReference[oaicite:4]{index=4}  
-- **`text.txt`**  
-  - Contains additional usage notes or examples (e.g., sample commands and expected output). Likely used as a quick reference.  
+     - Initializes shared semaphores (forks semaphore, printing semaphore, and a semaphore to indicate that all philosophers have eaten enough).  
+     - Forks one process per philosopher, passing each its index and pointers to shared data.  
+     - In each child process, calls `philosopher_routine()` and then exits.  
+     - The parent waits for either a “death” signal or for all children to finish eating the required number of times, then cleans up semaphores and processes. :contentReference[oaicite:3]{index=3}
+
+  2. **`philosopher.c`**  
+     - Implements `philosopher_routine(void *arg)`:  
+       - Records the start timestamp.  
+       - Enters a loop:  
+         1. Waits (sem_wait) on a “forks” semaphore twice to take two forks.  
+         2. Records timestamp and prints “has taken a fork” twice.  
+         3. Records timestamp and prints “is eating,” then sleeps for `time_to_eat` milliseconds.  
+         4. Posts (sem_post) on the forks semaphore twice to release forks.  
+         5. Increments local eaten count; if it reaches `number_of_times_each_must_eat`, signals the “full” semaphore and exits loop.  
+         6. Records timestamp and prints “is sleeping,” then sleeps for `time_to_sleep` milliseconds.  
+         7. Prints “is thinking.”  
+       - Spawns a monitor thread (or uses a separate process in some implementations) that periodically checks `get_timestamp() - last_meal_time > time_to_die`; if true, prints “died” and signals parent to terminate all processes. :contentReference[oaicite:4]{index=4}
+
+  3. **`monitor.c`**  
+     - Contains functions to monitor each philosopher’s time-to-die:  
+       - In the mandatory version, each child process creates a thread that checks its own death condition.  
+       - Upon detecting death, the monitor prints “timestamp X died” and calls `exit(EXIT_FAILURE)`, causing the parent to clean up.  
+       - Optionally, a parent process waits on a “full” semaphore N times (for each philosopher) to know when all have eaten enough and can terminate cleanly. :contentReference[oaicite:5]{index=5}
+
+  4. **`utils.c`**  
+     - Helper functions for:  
+       - `get_timestamp()`: Returns the number of milliseconds since the program started.  
+       - `ft_sleep(ms)`: Sleeps for the specified number of milliseconds (using `usleep` in a loop to check for death signals).  
+       - `print_action(philo, action_str)`: Uses a printing semaphore to serialize console output in the format:  
+         ```
+         <timestamp> <philosopher_number> <action_str>
+         ```  
+       - Error handling and freeing allocated resources: semaphores, allocated arrays, joined threads, and child processes. :contentReference[oaicite:6]{index=6}
+
+- **Bonus part source files (`philo_bonus/` or similarly named)**  
+  1. **`main_bonus.c`**  
+     - Similar argument parsing and validation as in the mandatory version.  
+     - Initializes pthread mutexes for forks (an array of `pthread_mutex_t` of size `number_of_philosophers`).  
+     - Creates one thread per philosopher plus a monitor thread for each.  
+     - Joins all threads after either detecting death or all philosophers having eaten required times.  
+     - Destroys all mutexes and frees memory before exiting. :contentReference[oaicite:7]{index=7}
+
+  2. **`philosopher_bonus.c`**  
+     - Implements `philosopher_routine(void *arg)` for the threaded version:  
+       - Locks left and right fork mutexes (in a deadlock‐avoidance order: e.g., lower‐indexed first).  
+       - Prints “has taken a fork” twice, then “is eating” and sleeps.  
+       - Unlocks both fork mutexes, increments eaten count, signals parent via a shared counter or semaphore if the eating target is reached.  
+       - Prints “is sleeping” and sleeps for `time_to_sleep` ms, then prints “is thinking.”  
+       - Continues until death or eating target reached. :contentReference[oaicite:8]{index=8}
+
+  3. **`monitor_bonus.c`**  
+     - In a separate thread per philosopher, checks for death in the same way as mandatory:  
+       - Periodically compares `current_time – last_meal_time > time_to_die`.  
+       - If a philosopher dies, prints “died” (protected by a printing mutex or semaphore) and signals all other threads to exit. :contentReference[oaicite:9]{index=9}
+
+- **`.gitignore`**  
+  - Ignores object files (`*.o`), executables (`philo`, `philo_bonus`), and any editor swapfiles. :contentReference[oaicite:10]{index=10}
 
 ## Languages and Tools  
-- **C (96.6%)**: Core implementation uses ISO C (C99/C11) system calls (`fork()`, `execve()`, `pipe()`, `dup2()`, `open()`, `close()`, `waitpid()`), and standard library functions from Libft (e.g., `ft_split()`, `ft_strjoin()`, `ft_substr()`, `ft_strlen()`). :contentReference[oaicite:5]{index=5}  
-- **Makefile (2.7%)**: Automates compilation and linking of Pipex with a custom Libft.  
-- **Shell (0.7%)**: `pipex.sh` for demonstration/testing and any CI hooks.  
+- **C (95.5%)**: All source files implement the simulation logic, timing, synchronization (processes with semaphores or threads with mutexes), and monitoring. :contentReference[oaicite:11]{index=11}  
+- **Makefile (4.5%)**: Automates building, cleaning, and rebuilding both `philo` and `philo_bonus` executables. :contentReference[oaicite:12]{index=12}
 
 ## How to Build and Run  
 
 1. **Clone the repository**  
    ```bash
-   git clone https://github.com/yuhi-ootani/Pipex.git
-   cd Pipex
-   ``` :contentReference[oaicite:6]{index=6}  
+   git clone https://github.com/yuhi-ootani/philosophers.git
+   cd philosophers
+   ``` :contentReference[oaicite:13]{index=13}
 
 2. **Compile**  
    ```bash
